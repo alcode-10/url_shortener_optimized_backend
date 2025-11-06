@@ -5,8 +5,12 @@ const urlschema = new  mongoose.Schema({
         type: String, required: true
     },
     shortCode: { type: String, required: true, unique: true },
-    clicks: { type: Number, default: 0 }
+    clicks: { type: Number, default: 0 },
+    clickHistory: [Date], // track every access time
+    lastAccessed: Date
 }, { timestamps: true });
+
+urlschema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 
 

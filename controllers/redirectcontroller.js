@@ -8,22 +8,32 @@ export const redirect = async (req, res) => {
         const cachedUrl = await redisClient.get(shortCode);
         if (cachedUrl) {
             console.log("Cache hit:", shortCode);
+            Url.updateOne(
+                { shortCode },
+                {
+                    $inc: { clicks: 1 },
+                    $push: { clickHistory: new Date() },
+                    $set: { lastAccessed: new Date() }
+                }
+            ).catch(console.error);
             return res.redirect(cachedUrl);
         }
     
-        const url = await Url.findOne({ shortCode })
+        const url = await Url.findOneAndUpdate(
+            { shortCode },
+            {
+                $inc: { clicks: 1 },
+                $push: { clickHistory: new Date() },
+                $set: { lastAccessed: new Date() }
+            },
+            { new: true }
+        );
 
-        
-    
         if (!url)
             res.status(404).json({ Message: "Code Not Found" })
     
-        await Url.findOneAndUpdate(
-            { shortCode: shortCode },
-            { $inc: { clicks: 1 } }
-        );
 
-        await redisClient.set(shortCode, url.originalUrl, { EX: 3600 });
+        await redisClient.set(shortCode, url.originalUrl, { EX: 3600 }); //time to live = 1 hour
         console.log(" Cache miss → stored:", shortCode);
         //atomicity
         res.redirect(url.originalUrl);
