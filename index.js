@@ -7,6 +7,9 @@ import urlshortener from './routes/url.js'
 import redirectroute from './routes/redirect.js'
 import statsRoutes from "./routes/statroutes.js";
 import { rateLimiter } from "./middleware/ratelimiter.js";
+import { Url } from "./models/url.js";
+import testRoutes from "./routes/testroutes.js";
+
 const app = express();
 app.use(express.json())
 
@@ -20,9 +23,10 @@ app.use("/api", statsRoutes);
 
 app.get("/flush", async (req, res) => {
     await redisClient.flushAll();
-    res.send("Redis cache + rate limit cleared ✅");
+    res.send("Redis cache + rate limit cleared");
 });
 
+app.use("/api/test", testRoutes);
 const connect = async () => {
     try {
         mongoose.connect(process.env.MONGODB_URI)
@@ -36,6 +40,10 @@ const connect = async () => {
 }
 
 connect();
+mongoose.connection.once("open", async () => {
+    await Url.syncIndexes();
+    console.log("TTL Index synced successfully");
+});
 
 app.listen(3000, () => {
     console.log("Server is listening on port 3000")

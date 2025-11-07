@@ -1,2 +1,7 @@
 node_modules/
 .env
+npm-debug.log
+Dockerfile*
+docker-compose*
+*.log
+.DS_Store

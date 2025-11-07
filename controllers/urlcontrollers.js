@@ -8,13 +8,11 @@ export const shortenurl = async (req, res) => {
 
         const shortCode = generateshortcode();
 
-        // If expiry provided → set expiry date
-        let expiresAt = null;
-        if (expireInMinutes) {
-            const now = new Date();
-            expiresAt = new Date(now.getTime() + expireInMinutes * 60 * 1000);
-        }
+        const DEFAULT_EXPIRY_MINUTES = 1 * 24 * 60;
 
+        // If expiry provided → set expiry date
+        const minutesToUse = expireInMinutes || DEFAULT_EXPIRY_MINUTES;
+        const expiresAt = new Date(Date.now() + minutesToUse * 60 * 1000);
         const newUrl = await Url.create({
             originalUrl,
             shortCode,
